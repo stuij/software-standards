@@ -1,0 +1,28 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: install packages
+      run: |
+        sudo pip install git+git://github.com/rst2pdf/rst2pdf@4d617f348d967f54679294c7ef5dc21f45e34923
+        sudo pip install rstcheck matplotlib
+    - name: check .rst document syntax
+      run: |
+        rstcheck --ignore-language=c,cpp abi/vfabia64/vfabia64.rst
+        rstcheck --ignore-language=c,cpp abi/aapcs64/aapcs64.rst
+    - name: build PDFs
+      run: |
+        mkdir ABI-PDFs
+        rst2pdf abi/aapcs64/aapcs64.rst -s abi/rst2pdf-abi.style --repeat-table-rows --default-dpi=110 --footer="###Page###" -o ABI-PDFs/aapcs64.pdf
+        rst2pdf abi/vfabia64/vfabia64.rst -s abi/rst2pdf-abi.style --repeat-table-rows --footer="###Page###" -o ABI-PDFs/vfabia64.pdf
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ABI-PDFs
+        path: ABI-PDFs
